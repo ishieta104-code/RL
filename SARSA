@@ -1,0 +1,42 @@
+import gym
+import numpy as np
+
+env = gym.make('CliffWalking-v0')
+
+Q = np.zeros((env.observation_space.n, env.action_space.n))
+
+alpha = 0.1
+gamma = 0.99
+epsilon = 0.1
+episodes = 500
+
+
+def epsilon_greedy(state):
+    if np.random.rand() < epsilon:
+        return env.action_space.sample()
+    return np.argmax(Q[state])
+
+
+for episode in range(episodes):
+    state, _ = env.reset()
+
+    action = epsilon_greedy(state)
+
+    done = False
+
+    while not done:
+        next_state, reward, terminated, truncated, _ = env.step(action)
+
+        done = terminated or truncated
+
+        next_action = epsilon_greedy(next_state)
+
+        td_target = reward + gamma * Q[next_state][next_action]
+        td_error = td_target - Q[state][action]
+
+        Q[state][action] += alpha * td_error
+
+        state = next_state
+        action = next_action
+
+print("SARSA Training Complete")
