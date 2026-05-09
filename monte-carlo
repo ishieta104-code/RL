@@ -1,0 +1,44 @@
+import gym
+import numpy as np
+from collections import defaultdict
+
+env = gym.make('Blackjack-v1')
+
+returns_sum = defaultdict(float)
+returns_count = defaultdict(float)
+V = defaultdict(float)
+
+gamma = 1.0
+num_episodes = 5000
+
+for episode in range(num_episodes):
+    episode_data = []
+
+    state, _ = env.reset()
+
+    done = False
+
+    while not done:
+        action = env.action_space.sample()
+        next_state, reward, terminated, truncated, _ = env.step(action)
+
+        done = terminated or truncated
+
+        episode_data.append((state, reward))
+        state = next_state
+
+    G = 0
+    visited_states = set()
+
+    for t in reversed(range(len(episode_data))):
+        state, reward = episode_data[t]
+        G = gamma * G + reward
+
+        if state not in visited_states:
+            returns_sum[state] += G
+            returns_count[state] += 1
+            V[state] = returns_sum[state] / returns_count[state]
+            visited_states.add(state)
+
+print("Estimated State Values:")
+print(dict(V))
